@@ -1,7 +1,9 @@
 from sys import exit
 
-
 def can_fit(object_dim, volume):
+
+    assert len(object_dim) == len(volume)
+
     while object_dim:
         if max(object_dim) > max(volume):
             return False
@@ -10,13 +12,11 @@ def can_fit(object_dim, volume):
         volume.remove(max(volume))
     return True
 
-def second_largest(arr):
-    copy = arr[:]
-    copy.remove(max(copy))
-    return max(copy)
-
 def num_sharing_dim(current_dim, volume):
-    # calculates the number of elements that are the same between the two arrays.``
+    # calculates the number of elements that are the same between the two arrays.
+    # Make sure to pass current[1][:3] in to only get the dimensions.
+
+    assert len(current_dim) == len(volume)
     curr_dim_copy = current_dim[:]
     vol_copy = volume[:]
     for dim in current_dim:
@@ -29,20 +29,20 @@ def num_sharing_dim(current_dim, volume):
 def debug_print():
     print("objects:")
     if objects:
-        for i in objects:
-            print("\tid={0}, l,w,h: {1},{2},{3} x,y,z:({4},{5},{6})".format(i[0], *i[1]))
+        for obj in objects:
+            print("\tid={0}, l,w,h: {1},{2},{3} x,y,z:({4},{5},{6})".format(obj[0], *obj[1]))
     else:
         print("\t[]")
     print("Volumes:")
     if volumes:
-        for i in volumes:
-            print("\tl,w,h: {0},{1},{2} x,y,z:({3},{4},{5})".format(*i))
+        for vol in volumes:
+            print("\tl,w,h: {0},{1},{2} x,y,z:({3},{4},{5})".format(*vol))
     else:
         print("\t[]")
     print("Finished Objects:")
     if finished_objects:
-        for i in finished_objects:
-            print("\tid={0}, l,w,h: {1},{2},{3} x,y,z:({4},{5},{6})".format(i[0], *i[1]))
+        for obj in finished_objects:
+            print("\tid={0}, l,w,h: {1},{2},{3} x,y,z:({4},{5},{6})".format(obj[0], *obj[1]))
     else:
         print("\t[]")
     print()
@@ -59,7 +59,6 @@ objects = [[1, [1, 3, 1, 0, 0, 0]], [2, [10, 10, 5, 0, 0, 0]], [3, [10, 10, 3, 0
 finished_objects = []
 
 # Sort all the objects based on the largest of their dimensions
-#objects = sorted(objects, key=lambda x: (max(x[1][:3]), second_largest(x[1][:3]), min(x[1][:3])), reverse=True)
 objects = sorted(objects, key=lambda x: sorted(x[1][:3], reverse=True), reverse=True)
 debug_print()
 while objects and volumes:
