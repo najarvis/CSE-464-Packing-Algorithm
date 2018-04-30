@@ -1,4 +1,4 @@
-from sys import exit
+from sys import exit, argv
 
 def can_fit(object_dim, volume):
 
@@ -26,6 +26,9 @@ def num_sharing_dim(current_dim, volume):
 
     return 3 - len(curr_dim_copy)
 
+def str_to_dim(string):
+    return list(map(int, string.split(" "))) + [0, 0, 0]
+
 def debug_print():
     print("objects:")
     if objects:
@@ -49,13 +52,33 @@ def debug_print():
     print("*" * 50)
     print()
 
+volumes = []
+objects = []
+
+
+input_text = "test_case1.txt"
+if len(argv) > 1:
+    input_text = argv[1]
+
+with open(input_text) as f:
+    vol_str = f.readline()
+    vol = str_to_dim(vol_str)
+    volumes.append(vol)
+
+    obj_str = f.readline()
+    i = 0
+    while obj_str != "":
+        obj_data = str_to_dim(obj_str)
+        objects.append([i, obj_data])
+        i += 1
+        obj_str = f.readline()
 
 # Initially contains the base trunk dimensions and position, will be used to hold split volumes.
 # [[length, width, height, x,y,z]]
-volumes = [[10, 10, 10, 0, 0, 0]]
+#volumes = [[10, 10, 10, 0, 0, 0]]
 
 # list of objects with the syntax: [ID, [length, width, height, x,y,z]]
-objects = [[1, [1, 3, 1, 0, 0, 0]], [2, [10, 10, 5, 0, 0, 0]], [3, [10, 10, 3, 0, 0, 0]]]
+#objects = [[1, [1, 3, 1, 0, 0, 0]], [2, [10, 10, 5, 0, 0, 0]], [3, [10, 10, 3, 0, 0, 0]]]
 finished_objects = []
 
 # Sort all the objects based on the largest of their dimensions
