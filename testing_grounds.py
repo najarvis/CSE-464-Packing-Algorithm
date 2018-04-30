@@ -71,6 +71,8 @@ def run(volumes, objects):
         best_fitting = volumes_by_fit.pop(0)
         while not can_fit(get_dim(current[1]), get_dim(best_fitting)):
             if not volumes_by_fit: # Empty
+                print(volumes)
+                print("{} objects couldn't fit".format(len(objects)))
                 sys.exit(1)
 
             best_fitting = volumes_by_fit.pop(0)
@@ -148,7 +150,9 @@ def run(volumes, objects):
                 current[1][swap_indices[1]] = tmp
 
             finished_objects.append(current)
-            non_matching_dim = [dim for dim in range(3) if current[1][dim] not in get_dim(best_fitting)][0]
+
+            non_matching_dim = [dim for dim in range(3) if get_dim(current[1])[dim] != get_dim(best_fitting)[dim]][0]
+
             position_offset = [0, 0, 0]
             position_offset[non_matching_dim] += current[1][non_matching_dim]
 
