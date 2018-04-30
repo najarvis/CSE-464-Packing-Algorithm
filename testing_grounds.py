@@ -91,8 +91,6 @@ def debug_print(objects, volumes, finished_objects):
     print("*" * 50)
     print()
 
-
-
 def run(volumes, objects):
     """Does the main algorithm, and returns a list containing the dimensions
     and positions for each object."""
@@ -116,7 +114,7 @@ def run(volumes, objects):
             best_fitting = volumes_by_fit.pop(0)
 
         # set the current objects x,y,z the same as the best fitting volume
-        set_pos(current[1], get_dim(best_fitting))
+        set_pos(current[1], get_pos(best_fitting))
         #num_sharing = len([dim for dim in current[1] if dim in best_fitting[:3]])
         num_sharing = num_sharing_dim(get_dim(current[1]), get_dim(best_fitting))
         print(current[1])
@@ -161,11 +159,35 @@ def run(volumes, objects):
 
         elif num_sharing == 1:
             print(1)
-            # 2 possible orientations, not equivilent
+            # 2 possible orientations, not equivalent
             # Shares one dimension with the best fit
             # Create 2 new volumes
 
             # Find WHICH dimensions are shared,
+            swap_index = 0
+            for i in range(3):
+                if current[1][i] in get_dim(best_fitting):
+                    swap_index = i
+            swap_best = get_dim(best_fitting).index(current[1][swap_index])
+            tmp = current[1][swap_best]
+            current[1][swap_best] = current[1][swap_index]
+            current[1][swap_index] = tmp
+            finished_objects.append(current)
+            if swap_best == 0:
+                top_volume = current[1][:2] + [best_fitting[2] - current[1][2]] + best_fitting[3:5] + [current[1][2]]
+                side_volume = [best_fitting[0]] + [best_fitting[1] - current[1][1]] + best_fitting[2:4] + [best_fitting[4] + current[1][1]] + [best_fitting[5]]
+            if swap_best == 1:
+                top_volume = current[1][:2] + [best_fitting[2] - current[1][2]] + best_fitting[3:5] + [current[1][2]]
+                side_volume = [best_fitting[0] - current[1][0]] + best_fitting[1:2] + [best_fitting[3] + current[1][0]] + best_fitting[3:6]
+            if swap_best == 2:
+                print(current[1], best_fitting)
+                print([best_fitting[0]] + [best_fitting[1] - current[1][1]] + best_fitting[2:4] + [best_fitting[4] + current[1][1]] + [best_fitting[5]])
+                top_volume = [best_fitting[0] - current[1][0]] + current[1][1:3] + [best_fitting[3] + current[1][0]] + best_fitting[4:6]
+                side_volume = [best_fitting[0]] + [best_fitting[1] - current[1][1]] + best_fitting[2:4] + [best_fitting[4] + current[1][1]] + [best_fitting[5]]
+
+            volumes.remove(best_fitting)
+            volumes.append(top_volume)
+            volumes.append(side_volume)
 
         elif num_sharing == 2:
             print(2)
