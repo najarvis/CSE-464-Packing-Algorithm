@@ -71,9 +71,9 @@ def run(volumes, objects):
         best_fitting = volumes_by_fit.pop(0)
         while not can_fit(get_dim(current[1]), get_dim(best_fitting)):
             if not volumes_by_fit: # Empty
-                print(volumes)
                 print("{} objects couldn't fit".format(len(objects)))
-                sys.exit(1)
+                print("However, the objects could fit: ")
+                return finished_objects, volumes
 
             best_fitting = volumes_by_fit.pop(0)
 
@@ -182,9 +182,12 @@ if __name__ == "__main__":
     VOLUMES = []
     OBJECTS = []
 
+    TRUNCATE = False
     INPUT_TEXT = "test_case1.txt"
     if len(sys.argv) > 1:
         INPUT_TEXT = sys.argv[1]
+        if len(sys.argv) == 3:
+            TRUNCATE = sys.argv[2].lower() == "true"
 
     with open(INPUT_TEXT) as f:
         VOL_STR = f.readline()
@@ -200,5 +203,12 @@ if __name__ == "__main__":
 
     final = run(VOLUMES, OBJECTS)
     print("ID\tLocation\tOrientation")
-    for obj in final[0]:
-        print("{}\t{}\t{}".format(obj[0], get_pos(obj[1]), get_dim(obj[1])))
+
+    if TRUNCATE:
+        for obj in final[0][:15]:
+            print("{}\t{}\t{}".format(obj[0], get_pos(obj[1]), get_dim(obj[1])))
+        if len(final[0]) > 15:
+            print("...")
+    else:
+        for obj in final[0]:
+            print("{}\t{}\t{}".format(obj[0], get_pos(obj[1]), get_dim(obj[1])))
