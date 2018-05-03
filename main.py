@@ -51,20 +51,25 @@ def draw_results(max_cubes):
     i = 0
     with open("results.txt") as f:
         vol = str_to_list(f.readline())
+        glColor(0.0, 0.0, 0.0, 1.0)
         draw_cube(Vector3(*vol[:3]), Vector3(*vol[3:]), i)
         next_line = f.readline()
+        glLineWidth(2.5)
         while next_line != "" and i < max_cubes:
             i += 1
-            next_obj = str_to_list(next_line)
+            if next_line[0] == "v":
+                glLineWidth(5.0)
+                glColor(i / max_cubes, 0.0, 0.0, 1.0)
+            elif next_line[0] == "o":
+                glLineWidth(10.0)
+                glColor(0.0, i / max_cubes, 0.0, 1.0)
+            if i == max_cubes:
+                glLineWidth(15.0)
+            next_obj = str_to_list(next_line[1:])
             draw_cube(Vector3(*next_obj[:3]), Vector3(*next_obj[3:]), i)
             next_line = f.readline()
 
 def draw_cube(dim, pos, seed=None):
-    glColor(1.0, 1.0, 1.0, 1.0)
-    if seed is not None:
-        random.seed(seed)
-        glColor(random.random(), random.random(), random.random(), 1.0)
-    glLineWidth(2.5)
     glBegin(GL_LINE_STRIP)
 
     # Bottom face
@@ -72,32 +77,36 @@ def draw_cube(dim, pos, seed=None):
     glVertex(*(pos + Vector3(dim.x, 0.0, 0.0)))
     glVertex(*(pos + Vector3(dim.x, dim.y, 0.0)))
     glVertex(*(pos + Vector3(0.0, dim.y, 0.0)))
-    glVertex(*pos)
 
     # Bottom face
+    glVertex(*pos)
     glVertex(*(pos + Vector3(dim.x, 0.0, 0.0)))
     glVertex(*(pos + Vector3(dim.x, 0.0, dim.z)))
     glVertex(*(pos + Vector3(0.0, 0.0, dim.z)))
+
+    # Bottom face
     glVertex(*pos)
-
-    # Bottom face
     glVertex(*(pos + Vector3(0.0, 0.0, dim.z)))
-    glVertex(*(pos + Vector3(dim.x, 0.0, dim.z)))
-    glVertex(*(pos + Vector3(dim.x, 0.0, 0.0)))
-
-    # Bottom face
-    glVertex(*(pos + Vector3(dim.x, 0.0, dim.z)))
-    glVertex(*(pos + Vector3(dim.x, dim.y, dim.z)))
-    glVertex(*(pos + Vector3(dim.x, dim.y, 0.0)))
-
-    # Bottom face
-    glVertex(*(pos + Vector3(dim.x, dim.y, dim.z)))
     glVertex(*(pos + Vector3(0.0, dim.y, dim.z)))
     glVertex(*(pos + Vector3(0.0, dim.y, 0.0)))
 
     # Bottom face
-    glVertex(*(pos + Vector3(0.0, dim.y, dim.z)))
+    glVertex(*(pos + Vector3(0.0, dim.y, 0.0)))
+    glVertex(*(pos + Vector3(dim.x, dim.y, 0.0)))
+    glVertex(*(pos + Vector3(dim.x, dim.y, dim.z)))
+    glVertex(*(pos + Vector3(0.0, dim.y, 0.0)))
+
+    # Bottom face
+    glVertex(*(pos + Vector3(dim.x, dim.y, dim.z)))
+    glVertex(*(pos + Vector3(dim.x, 0.0, dim.z)))
+    glVertex(*(pos + Vector3(dim.x, 0.0, dim.z)))
+    glVertex(*(pos + Vector3(dim.x, dim.y, 0.0)))
+
+    # Bottom face
     glVertex(*(pos + Vector3(0.0, 0.0, dim.z)))
+    glVertex(*(pos + Vector3(dim.x, 0.0, dim.z)))
+    glVertex(*(pos + Vector3(dim.x, dim.y, dim.z)))
+    glVertex(*(pos + Vector3(0.0, dim.y, dim.z)))
     glEnd()
 
 def run():
