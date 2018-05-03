@@ -4,6 +4,7 @@ Copyright (c) 2018 - Nick Jarvis & Nick Wayne
 """
 
 import sys
+from timeit import default_timer as timer
 
 def can_fit(object_dim, volume):
     """Checks if an object can fit inside a volume."""
@@ -54,11 +55,25 @@ def str_to_dim(string):
 
     return list(map(int, string.split(" "))) + [0, 0, 0]
 
+def fits(obj, vol):
+    try:
+        for i in range(3):
+            assert obj[i] + obj[3+i] <= vol[i]
+    except AssertionError as err:
+        print(obj, vol)
+        print("Furthest coords: {}".format([obj[i]+obj[3+i] for i in range(3)]))
+        raise err
+
+def check_valid(vol, base):
+    for i in range(3):
+        assert vol[3+i] + vol[i] <= base[i]
+
 def run(volumes, objects):
     """Does the main algorithm, and returns a list containing the dimensions
     and positions for each object."""
 
     finished_objects = []
+    base_volume = volumes[0]
 
     # Sort all the objects based on the largest of their dimensions
     objects = sorted(objects, key=lambda x: sorted(get_dim(x[1]), reverse=True), reverse=True)
@@ -79,24 +94,28 @@ def run(volumes, objects):
 
         # set the current objects x,y,z the same as the best fitting volume
         set_pos(current[1], get_pos(best_fitting))
-        #num_sharing = len([dim for dim in current[1] if dim in best_fitting[:3]])
+
         num_sharing = num_sharing_dim(get_dim(current[1]), get_dim(best_fitting))
 
         if num_sharing == 0:
             # Shares no dimensions with the "best fit"
             # Create 3 new volumes
             finished_objects.append(current)
-
+            current_data = current[1]
             # Volume on top of the object added
-            top_volume = current[1][:2] + [best_fitting[2] - current[1][2]] + best_fitting[3:5] + [current[1][2]]
+            top_volume = current_data[:2] + [best_fitting[2] - current_data[2]] + best_fitting[3:5] + [best_fitting[5] + current_data[2]]
 
             # Volume on width side of the object added
-            width_volume = [best_fitting[0] - current[1][0]] + best_fitting[1:3] + [best_fitting[3] + current[1][0]] + current[1][4:6]
+            length_volume = [best_fitting[0] - current_data[0]] + best_fitting[1:3] + [best_fitting[3] + current_data[0]] + current_data[4:6]
 
             # Volume on length side of the object added
-            length_volume = [current[1][0]] + [best_fitting[1] - current[1][1]] + best_fitting[2:4] + [best_fitting[4] + current[1][1]] + [best_fitting[5]]
+            width_volume = [current_data[0]] + [best_fitting[1] - current_data[1]] + best_fitting[2:4] + [best_fitting[4] + current_data[1]] + [best_fitting[5]]
 
             volumes.remove(best_fitting)
+
+            # check_valid(top_volume, base_volume)
+            # check_valid(width_volume, base_volume)
+            # check_valid(length_volume, base_volume)
 
             volumes.append(top_volume)
             volumes.append(width_volume)
@@ -117,15 +136,17 @@ def run(volumes, objects):
             current[1][swap_best] = current[1][swap_index]
             current[1][swap_index] = tmp
             finished_objects.append(current)
+            current_data = current[1]
+
             if swap_best == 0:
-                top_volume = current[1][:2] + [best_fitting[2] - current[1][2]] + best_fitting[3:5] + [current[1][2]]
-                side_volume = [best_fitting[0]] + [best_fitting[1] - current[1][1]] + best_fitting[2:4] + [best_fitting[4] + current[1][1]] + [best_fitting[5]]
+                top_volume = current_data[:2] + [best_fitting[2] - current_data[2]] + best_fitting[3:5] + [best_fitting[5] + current_data[2]]
+                side_volume = [best_fitting[0]] + [best_fitting[1] - current_data[1]] + best_fitting[2:4] + [best_fitting[4] + current_data[1]] + [best_fitting[5]]
             if swap_best == 1:
-                top_volume = current[1][:2] + [best_fitting[2] - current[1][2]] + best_fitting[3:5] + [current[1][2]]
-                side_volume = [best_fitting[0] - current[1][0]] + best_fitting[1:2] + [best_fitting[3] + current[1][0]] + best_fitting[3:6]
+                top_volume = current_data[:2] + [best_fitting[2] - current_data[2]] + best_fitting[3:5] + [best_fitting[5] + current_data[2]]
+                side_volume = [best_fitting[0] - current_data[0]] + best_fitting[1:3] + [best_fitting[3] + current_data[0]] + best_fitting[4:6]
             if swap_best == 2:
-                top_volume = [best_fitting[0] - current[1][0]] + current[1][1:3] + [best_fitting[3] + current[1][0]] + best_fitting[4:6]
-                side_volume = [best_fitting[0]] + [best_fitting[1] - current[1][1]] + best_fitting[2:4] + [best_fitting[4] + current[1][1]] + [best_fitting[5]]
+                top_volume = [best_fitting[0] - current_data[0]] + current_data[1:3] + [best_fitting[3] + current_data[0]] + best_fitting[4:6]
+                side_volume = [best_fitting[0]] + [best_fitting[1] - current_data[1]] + best_fitting[2:4] + [best_fitting[4] + current_data[1]] + [best_fitting[5]]
 
             volumes.remove(best_fitting)
             volumes.append(top_volume)
@@ -163,6 +184,16 @@ def run(volumes, objects):
             new_volume[non_matching_dim] -= position_offset[non_matching_dim]
 
             created_volume = new_volume + new_pos
+            """
+            try:
+                assert new_pos[0] + new_volume[0] <= base_volume[0]
+                assert new_pos[1] + new_volume[1] <= base_volume[1]
+                assert new_pos[2] + new_volume[2] <= base_volume[2]
+            except AssertionError as err:
+                print(new_pos)
+                print(new_volume)
+                raise err
+            """
 
             volumes.remove(best_fitting)
             volumes.append(created_volume)
@@ -170,7 +201,10 @@ def run(volumes, objects):
         elif num_sharing == 3:
             # Volume is a perfect fit for the object
             # Create no new volumes
+            print(current[1])
             set_dim(current[1], get_dim(best_fitting))
+            print(current[1])
+            print()
             # regardless of how the volume is oriented, we want the object oriented that way too.
 
             volumes.remove(best_fitting)
@@ -189,9 +223,11 @@ if __name__ == "__main__":
         if len(sys.argv) == 3:
             TRUNCATE = sys.argv[2].lower() == "true"
 
+    original_vol = None
     with open(INPUT_TEXT) as f:
         VOL_STR = f.readline()
         VOLUMES.append(str_to_dim(VOL_STR))
+        original_vol = str_to_dim(VOL_STR)
 
         OBJ_STR = f.readline()
         i = 0
@@ -201,14 +237,31 @@ if __name__ == "__main__":
             i += 1
             OBJ_STR = f.readline()
 
-    final = run(VOLUMES, OBJECTS)
-    print("ID\tLocation\tOrientation")
+    """
+    with open("timings.csv", "w") as f:
+        f.write("number of objects,time(seconds)\n")
+        for i in range(1000):
+            VOLUMES = [[100, 100, 100, 0, 0, 0]]
+            OBJECTS = [[x, [1, 1, 1, 0, 0, 0]] for x in range(i)]
+            start = timer()
+            final = run(VOLUMES, OBJECTS)
+            end = timer()
+            f.write("{0},{1:.4f}\n".format(i, end-start))
+    """
+    with open("results.txt", "w") as f:
+        f.write("{} {} {} {} {} {}\n".format(*original_vol))
+        final = run(VOLUMES, OBJECTS)
+        print("ID\tLocation\tOrientation")
 
-    if TRUNCATE:
-        for obj in final[0][:15]:
-            print("{}\t{}\t{}".format(obj[0], get_pos(obj[1]), get_dim(obj[1])))
-        if len(final[0]) > 15:
-            print("...")
-    else:
-        for obj in final[0]:
-            print("{}\t{}\t{}".format(obj[0], get_pos(obj[1]), get_dim(obj[1])))
+        if TRUNCATE:
+            for obj in final[0][:15]:
+                print("{}\t{}\t{}".format(obj[0], get_pos(obj[1]), get_dim(obj[1])))
+            if len(final[0]) > 15:
+                print("...")
+        else:
+            for obj in final[0]:
+                # fits(obj[1], original_vol)
+                print("{}\t{}\t{}".format(obj[0], get_pos(obj[1]), get_dim(obj[1])))
+                f.write("{} {} {} {} {} {}\n".format(*obj[1]))
+            # for vol in final[1]:
+                # f.write("{} {} {} {} {} {}\n".format(*vol))
