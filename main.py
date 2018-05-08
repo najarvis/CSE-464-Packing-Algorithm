@@ -15,7 +15,6 @@ pygame.init()
 screen = pygame.display.set_mode(screen_size, FULLSCREEN|HWSURFACE|OPENGL|DOUBLEBUF)
 
 def resize(width, height):
-
     glViewport(0,0,width, height)
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
@@ -70,43 +69,36 @@ def draw_results(max_cubes):
             next_line = f.readline()
 
 def draw_cube(dim, pos, seed=None):
-    glBegin(GL_LINE_STRIP)
-
-    # Bottom face
-    glVertex(*pos)
-    glVertex(*(pos + Vector3(dim.x, 0.0, 0.0)))
-    glVertex(*(pos + Vector3(dim.x, dim.y, 0.0)))
-    glVertex(*(pos + Vector3(0.0, dim.y, 0.0)))
-
-    # Bottom face
+    glBegin(GL_LINE_LOOP)
+    # Left face
     glVertex(*pos)
     glVertex(*(pos + Vector3(dim.x, 0.0, 0.0)))
     glVertex(*(pos + Vector3(dim.x, 0.0, dim.z)))
     glVertex(*(pos + Vector3(0.0, 0.0, dim.z)))
+    glEnd()
 
-    # Bottom face
+    # Back face
+    glBegin(GL_LINE_LOOP)
     glVertex(*pos)
-    glVertex(*(pos + Vector3(0.0, 0.0, dim.z)))
+    glVertex(*(pos + Vector3(0.0, dim.y, 0.0)))
     glVertex(*(pos + Vector3(0.0, dim.y, dim.z)))
-    glVertex(*(pos + Vector3(0.0, dim.y, 0.0)))
-
-    # Bottom face
-    glVertex(*(pos + Vector3(0.0, dim.y, 0.0)))
-    glVertex(*(pos + Vector3(dim.x, dim.y, 0.0)))
-    glVertex(*(pos + Vector3(dim.x, dim.y, dim.z)))
-    glVertex(*(pos + Vector3(0.0, dim.y, 0.0)))
-
-    # Bottom face
-    glVertex(*(pos + Vector3(dim.x, dim.y, dim.z)))
-    glVertex(*(pos + Vector3(dim.x, 0.0, dim.z)))
-    glVertex(*(pos + Vector3(dim.x, 0.0, dim.z)))
-    glVertex(*(pos + Vector3(dim.x, dim.y, 0.0)))
-
-    # Bottom face
     glVertex(*(pos + Vector3(0.0, 0.0, dim.z)))
+    glEnd()
+
+    # Right face
+    glBegin(GL_LINE_LOOP)
+    glVertex(*(pos + Vector3(dim.x, dim.y, 0.0)))
+    glVertex(*(pos + Vector3(0.0, dim.y, 0.0)))
+    glVertex(*(pos + Vector3(0.0, dim.y, dim.z)))
+    glVertex(*(pos + Vector3(dim.x, dim.y, dim.z)))
+    glEnd()
+
+    # Front face
+    glBegin(GL_LINE_LOOP)
+    glVertex(*(pos + Vector3(dim.x, dim.y, 0.0)))
+    glVertex(*(pos + Vector3(dim.x, 0.0, 0.0)))
     glVertex(*(pos + Vector3(dim.x, 0.0, dim.z)))
     glVertex(*(pos + Vector3(dim.x, dim.y, dim.z)))
-    glVertex(*(pos + Vector3(0.0, dim.y, dim.z)))
     glEnd()
 
 def run():
@@ -130,10 +122,12 @@ def run():
     pygame.mouse.set_visible(False)
     max_cubes = 1
 
-    while True:
+    done = False
+    while not done:
         for event in pygame.event.get():
             if event.type == QUIT:
-                quit()
+                done = True
+                break
 
             if event.type == KEYDOWN and event.key == K_SPACE:
                 max_cubes += 1
@@ -152,7 +146,8 @@ def run():
             pygame.image.save(screen, "Screenshot.png")
 
         if pressed[K_ESCAPE]:
-            return
+            done = True
+            continue
 
         pressed_buttons = pygame.mouse.get_pressed()
         if pressed_buttons[0] == 1:
@@ -183,13 +178,13 @@ def run():
 
         glLoadIdentity()
 
-        glRotatef(mouse_y, 1, 0, 0)
-        glRotatef(mouse_x, 0, 1, 0)
-
         glLoadMatrixd(camera_matrix.get_inverse().to_opengl())
 
         draw_results(max_cubes)
 
         pygame.display.flip()
 
-run()
+    quit()
+
+if __name__ == "__main__":
+    run()

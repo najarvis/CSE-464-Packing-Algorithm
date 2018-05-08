@@ -43,11 +43,11 @@ def set_orientation(obj, ori):
     set_dim(obj, new_ori)
 
 def num_sharing_dim(current_dim, volume, for_sorting=True):
-    """calculates the number of elements that are the same between the two arrays.
-    Make sure to pass current[1][:3] in to only get the dimensions."""
+    """Calculates the number of elements that are the same between the two arrays."""
 
     assert len(current_dim) == 6 and len(volume) == 6
 
+    # These are the indices for each orientation
     orientations = [
         (0, 1, 2),
         (0, 2, 1),
@@ -57,18 +57,24 @@ def num_sharing_dim(current_dim, volume, for_sorting=True):
         (2, 1, 0)
     ]
 
+    # Set up the scores list
     scores = [-1] * 6
+
+    # Test each orientation, and store its score
     for i in range(6):
         ori = orientations[i]
         test_dim = [current_dim[ori[0]], current_dim[ori[1]], current_dim[ori[2]]] + get_pos(current_dim)
+
+        # Only score orientations that actually can fit.
         if exact_fit_works(test_dim, volume):
             scores[i] = 0
             for j in range(3):
                 if test_dim[j] == volume[j]:
                     scores[i] += 1
 
+    # If for sorting, we simply return the max of the scores.
+    # If not, we return the actual orientation that scored the highest
     if not for_sorting:
-        # print("Scores are: {}. Going with: {}".format(scores, orientations[scores.index(max(scores))] ))
         return orientations[scores.index(max(scores))]
     return max(scores)
 
@@ -79,12 +85,16 @@ def str_to_dim(string):
     return list(map(int, string.split(" "))) + [0, 0, 0]
 
 def exact_fit_works(obj, vol):
+    """Check to make sure an object in its current orientation will fit in the volume."""
+
     for i in range(3):
         if obj[i] > vol[i]:
             return False
     return True
 
 def fits(obj, vol):
+    """A check to make sure a volume fits."""
+
     try:
         assert exact_fit_works(obj, vol)
     except AssertionError as err:
@@ -93,6 +103,8 @@ def fits(obj, vol):
         raise err
 
 def check_valid(vol, base):
+    """Check if a volume fits inside the base volume (i.e. doesn't stick out of the trunk)."""
+
     for i in range(3):
         assert vol[3+i] + vol[i] <= base[i]
 
@@ -129,7 +141,7 @@ def run(volumes, objects):
         best_orientation = num_sharing_dim(current[1], best_fitting, False)
         set_orientation(current[1], best_orientation)
 
-        print("ID: {} - Going into {}".format(current[0], num_sharing))
+        #print("ID: {} - Going into {}".format(current[0], num_sharing))
 
         if num_sharing == 0:
             # Shares no dimensions with the "best fit"
