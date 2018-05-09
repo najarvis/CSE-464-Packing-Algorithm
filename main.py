@@ -1,4 +1,4 @@
-screen_size = (1920,1080)
+# screen_size = (1920,1080)
 
 from OpenGL.GL import *
 from OpenGL.GLU import *
@@ -11,6 +11,7 @@ from Vector3 import Vector3
 import pygame
 from pygame.locals import *
 pygame.init()
+screen_size = pygame.display.list_modes()[0]
 
 screen = pygame.display.set_mode(screen_size, FULLSCREEN|HWSURFACE|OPENGL|DOUBLEBUF)
 
