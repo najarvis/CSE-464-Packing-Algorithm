@@ -15,6 +15,22 @@ screen_size = pygame.display.list_modes()[0]
 
 screen = pygame.display.set_mode(screen_size, FULLSCREEN|HWSURFACE|OPENGL|DOUBLEBUF)
 
+LOADED_OBJECTS = []
+
+def load():
+    global LOADED_OBJECTS
+    LOADED_OBJECTS = []
+    with open("results.txt") as f:
+        vol = str_to_list(f.readline())
+        LOADED_OBJECTS.append(['m', vol])
+        next_line = f.readline()
+        while next_line != "":
+            if next_line[0] == "v":
+                LOADED_OBJECTS.append(['v', str_to_list(next_line[1:])])
+            elif next_line[0] == "o":
+                LOADED_OBJECTS.append(['o', str_to_list(next_line[1:])])
+            next_line = f.readline()
+
 def resize(width, height):
     glViewport(0,0,width, height)
     glMatrixMode(GL_PROJECTION)
@@ -49,25 +65,19 @@ def str_to_list(string):
 
 def draw_results(max_cubes):
     i = 0
-    with open("results.txt") as f:
-        vol = str_to_list(f.readline())
-        glColor(0.0, 0.0, 0.0, 1.0)
-        draw_cube(Vector3(*vol[:3]), Vector3(*vol[3:]), i)
-        next_line = f.readline()
-        glLineWidth(2.5)
-        while next_line != "" and i < max_cubes:
-            i += 1
-            if next_line[0] == "v":
-                glLineWidth(5.0)
-                glColor(i / max_cubes, 0.0, 0.0, 1.0)
-            elif next_line[0] == "o":
-                glLineWidth(10.0)
-                glColor(0.0, i / max_cubes, 0.0, 1.0)
-            if i == max_cubes:
-                glLineWidth(15.0)
-            next_obj = str_to_list(next_line[1:])
-            draw_cube(Vector3(*next_obj[:3]), Vector3(*next_obj[3:]), i)
-            next_line = f.readline()
+    for cube in LOADED_OBJECTS:
+        if cube[0] == 'm':
+            glColor(0.0, 0.0, 0.0, 1.0)
+        elif cube[0] == 'v':
+            glLineWidth(5.0)
+            glColor(i / max_cubes, 0.0, 0.0, 1.0)
+        elif cube[0] == "o":
+            glLineWidth(10.0)
+            glColor(0.0, i / max_cubes, 0.0, 1.0)
+        draw_cube(Vector3(*cube[1][:3]), Vector3(*cube[1][3:]), i)
+        i += 1
+        if i > max_cubes:
+            return
 
 def draw_cube(dim, pos, seed=None):
     glBegin(GL_LINE_LOOP)
@@ -106,6 +116,7 @@ def run():
 
     resize(*screen_size)
     init()
+    load()
     clock = pygame.time.Clock()
 
     camera_matrix = Matrix44()

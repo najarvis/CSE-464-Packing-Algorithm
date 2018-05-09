@@ -262,7 +262,7 @@ if __name__ == "__main__":
     OBJECTS = []
 
     TRUNCATE = False
-    INPUT_TEXT = "test_case1.txt"
+    INPUT_TEXT = "tests/test_case1.txt"
     if len(sys.argv) > 1:
         INPUT_TEXT = sys.argv[1]
         if len(sys.argv) == 3:
